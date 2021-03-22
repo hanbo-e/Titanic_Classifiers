@@ -55,7 +55,7 @@ def compare_models(Xtrain, ytrain, Xtest, ytest):
 #####main
 
 #load data
-df = pd.read_csv('train.csv')
+df = pd.read_csv('data/train.csv')
 
 #select X and y for LogisticRegression 'Pclass' feature only
 X1 = df[['Pclass']]
