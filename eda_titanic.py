@@ -175,11 +175,51 @@ import matplotlib.pyplot as plt
 mosaic(Xtrain, ["Survived", "Pclass", "Sex"])
 mosaic(Xtrain, ["Survived", "Pclass"])
 
+#Create bins for the int/float data and convert to categorical
+Xtrain['Age'] = pd.cut(Xtrain['Age'], 9, labels=["Child", "Teen", "Twenties", "Thirties", "Fourties", "Fifties", "Sixties",\
+                                                 "Seventies", "Eighties"])
+Xtrain['SibSp'] = pd.cut(Xtrain['SibSp'], 3, labels=["Low", "Medium", "High"])
+Xtrain['Parch'] = pd.cut(Xtrain['Parch'], 3, labels=["Low", "Medium", "High"])
+Xtrain['Fare'] = pd.cut(Xtrain['Fare'], 5, labels=["Very Low", "Low", "Medium", "High", "Very High"])
+
+#drop name
+Xtrain = Xtrain.drop(['Name'], axis = 1)
+
+#Make chi-square heatmap (code taken from "Analytics Vidhya" Medium article))
+#NEED TO ADD SURVIVED!
+
+col_names = Xtrain.columns
+#ChiSqMatrix = pd.DataFrame(Xtrain, columns=col_names, index=col_names)
+ChiSqMatrix = pd.DataFrame(columns=col_names, index=col_names, dtype=np.dtype("float"))
+#loop through values and get chi-square scores
+outcount = 0
+incount = 0
+for icol in col_names:
+    for jcol in col_names:
+        myCrossTab=pd.crosstab(Xtrain[icol], Xtrain[jcol])
+        stat, p, dof, expected = chi2_contingency(myCrossTab)
+        ChiSqMatrix.iloc[outcount, incount]=round(p, 5)
+        #check that expected freq at least 5 for 80% of cells
+        countExpected=expected[expected<5].size
+        percentExpected=((expected.size-countExpected)/expected.size)*100
+        if percentExpected<20:
+            ChiSqMatrix.iloc[outcount, incount]=2
+        if icol == jcol:
+            ChiSqMatrix.iloc[outcount, incount]=0.00
+        incount += 1
+    outcount += 1
+    incount = 0
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+fig, ax = plt.subplots(figsize=(11, 11))
+mask = np.triu(np.ones_like(ChiSqMatrix, dtype=np.bool))
+sns.heatmap(ChiSqMatrix, mask=mask, cmap="Blues", annot=True)
+plt.show()
 """
 TODOs
 Reduce 'Cabin' data to 'Deck' data
-Create bins for the int/float data and convert to categorical
-Make chi-square heatmap
 Create Facet grid of barplots of each variable to survival
 Convert all data to int format for SelectKBest function
 """
